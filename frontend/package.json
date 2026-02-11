@@ -14,7 +14,9 @@
     "qrcode": "^1.5.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^6.26.1"
+    "react-router-dom": "^6.26.1",
+    "@tanstack/react-query": "^5.64.2",
+    "zustand": "^5.0.2"
   },
   "devDependencies": {
     "@types/react": "^18.3.5",
