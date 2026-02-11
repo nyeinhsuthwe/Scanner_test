@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useLocation, useParams } from 'react-router-dom';
 import { getItemByCode } from '../api/items';
 import CodePreview from '../components/CodePreview';
@@ -6,37 +6,28 @@ import CodePreview from '../components/CodePreview';
 function DetailPage() {
   const { code } = useParams();
   const location = useLocation();
-  const [item, setItem] = useState(location.state?.item || null);
-  const [loading, setLoading] = useState(!location.state?.item);
-  const [error, setError] = useState('');
+  const initialItem = location.state?.item || null;
+  const decodedCode = code ? decodeURIComponent(code) : '';
 
-  useEffect(() => {
-    const loadItem = async () => {
-      if (item || !code) {
-        return;
-      }
+  const {
+    data: item,
+    isLoading,
+    isError,
+    error
+  } = useQuery({
+    queryKey: ['item', decodedCode],
+    queryFn: () => getItemByCode(decodedCode),
+    enabled: Boolean(decodedCode),
+    initialData: initialItem || undefined
+  });
 
-      setLoading(true);
-      setError('');
-      try {
-        const fetched = await getItemByCode(decodeURIComponent(code));
-        setItem(fetched);
-      } catch (err) {
-        setError(err.response?.status === 404 ? 'Item Not Found' : 'Unable to load item');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadItem();
-  }, [code, item]);
-
-  if (loading) {
+  if (isLoading) {
     return <p className="text-sm text-slate-700">Loading item...</p>;
   }
 
-  if (error) {
-    return <p className="text-sm font-semibold text-red-600">{error}</p>;
+  if (isError) {
+    const message = error.response?.status === 404 ? 'Item Not Found' : 'Unable to load item';
+    return <p className="text-sm font-semibold text-red-600">{message}</p>;
   }
 
   if (!item) {

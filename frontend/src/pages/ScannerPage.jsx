@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { getItemByCode } from '../api/items';
 
 function ScannerPage() {
   const inputRef = useRef(null);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const [scanInput, setScanInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -26,7 +28,10 @@ function ScannerPage() {
     setError('');
 
     try {
-      const item = await getItemByCode(code);
+      const item = await queryClient.fetchQuery({
+        queryKey: ['item', code],
+        queryFn: () => getItemByCode(code)
+      });
       setScanInput('');
       navigate(`/items/${encodeURIComponent(item.code)}`, { state: { item } });
     } catch (err) {
