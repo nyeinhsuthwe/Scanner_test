@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { createItem } from '../api/items';
 import CodePreview from '../components/CodePreview';
+import ScannerPage from './ScannerPage';
 import { useItemStore } from '../store/itemStore';
 
 const initialForm = {
@@ -141,6 +142,8 @@ function AdminPage() {
           </div>
         </section>
       ) : null}
+
+      <ScannerPage />
     </div>
   );
 }
