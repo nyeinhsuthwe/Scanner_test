@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { getItemByCode } from '../api/items';
 
 function ScannerPage() {
   const inputRef = useRef(null);
   const navigate = useNavigate();
+  const location = useLocation();
   const queryClient = useQueryClient();
 
   const [scanInput, setScanInput] = useState('');
@@ -34,6 +35,18 @@ function ScannerPage() {
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
+
+  useEffect(() => {
+    const routeStateCode = location.state?.prefillCode;
+    const queryCode = new URLSearchParams(location.search).get('code');
+    const prefillCode = (routeStateCode || queryCode || '').trim();
+
+    if (prefillCode) {
+      setScanInput(prefillCode);
+      setError('');
+      inputRef.current?.focus();
+    }
+  }, [location.search, location.state]);
 
   const submitScan = (code) => {
     if (!code || lookupMutation.isPending) {

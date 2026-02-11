@@ -126,6 +126,13 @@ function AdminPage() {
             <p className="text-sm text-slate-700">
               <span className="font-semibold">Name:</span> {createdItem.name}
             </p>
+            <Link
+              to={`/scan?code=${encodeURIComponent(createdItem.code)}`}
+              state={{ prefillCode: createdItem.code }}
+              className="mt-3 inline-flex rounded-md bg-slate-800 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-900"
+            >
+              Open Scanner with Auto-Filled Code
+            </Link>
           </div>
 
           <CodePreview code={createdItem.code} />
