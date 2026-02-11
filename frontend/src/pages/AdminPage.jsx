@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { createItem } from '../api/items';
 import CodePreview from '../components/CodePreview';
-import ScannerPage from './ScannerPage';
-import { useItemStore } from '../store/itemStore';
 
 const initialForm = {
   name: '',
@@ -12,17 +11,20 @@ const initialForm = {
 };
 
 function AdminPage() {
+  const queryClient = useQueryClient();
+
   const [form, setForm] = useState(initialForm);
   const [error, setError] = useState('');
-
-  const createdItems = useItemStore((state) => state.createdItems);
-  const addCreatedItem = useItemStore((state) => state.addCreatedItem);
-  const clearCreatedItems = useItemStore((state) => state.clearCreatedItems);
 
   const createItemMutation = useMutation({
     mutationFn: createItem,
     onSuccess: (item) => {
-      addCreatedItem(item);
+      queryClient.setQueryData(['items'], (previousItems = []) => [
+        item,
+        ...previousItems.filter((existingItem) => existingItem.code !== item.code)
+      ]);
+      queryClient.invalidateQueries({ queryKey: ['items'] });
+      queryClient.setQueryData(['item', item.code], item);
       setForm(initialForm);
     },
     onError: (err) => {
@@ -32,7 +34,7 @@ function AdminPage() {
 
   const onChange = (event) => {
     const { name, value } = event.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setForm((previousForm) => ({ ...previousForm, [name]: value }));
   };
 
   const onSubmit = (event) => {
@@ -45,14 +47,15 @@ function AdminPage() {
     });
   };
 
-  const latestItem = createdItems[0] || null;
+  const createdItem = createItemMutation.data;
 
   return (
     <div className="space-y-6">
       <section className="rounded-xl border bg-white p-6 shadow-sm">
-        <h1 className="text-2xl font-bold text-slate-900">Admin Item Creator</h1>
+        <h1 className="text-2xl font-bold text-slate-900">Admin Create Page</h1>
         <p className="mt-1 text-sm text-slate-600">
-          Create a product and generate both QR code and barcode from a UUID code.
+          Create an item and generate both QR code and barcode from its unique backend-generated
+          code.
         </p>
 
         <form className="mt-6 grid gap-4" onSubmit={onSubmit}>
@@ -92,7 +95,7 @@ function AdminPage() {
             />
           </label>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               disabled={createItemMutation.isPending}
               type="submit"
@@ -101,49 +104,33 @@ function AdminPage() {
               {createItemMutation.isPending ? 'Saving...' : 'Create Item'}
             </button>
 
-            <button
-              type="button"
-              onClick={clearCreatedItems}
-              disabled={createdItems.length === 0}
-              className="inline-flex w-fit items-center rounded-lg border border-slate-300 bg-white px-4 py-2 font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-60"
+            <Link
+              to="/codes"
+              className="inline-flex w-fit items-center rounded-lg border border-slate-300 bg-white px-4 py-2 font-semibold text-slate-700 hover:bg-slate-100"
             >
-              Clear Saved Items
-            </button>
+              Open Code List
+            </Link>
           </div>
 
           {error ? <p className="text-sm font-medium text-red-600">{error}</p> : null}
         </form>
       </section>
 
-      {latestItem ? (
+      {createdItem ? (
         <section className="space-y-4">
           <div className="rounded-xl border bg-white p-4 shadow-sm">
             <h2 className="text-lg font-semibold text-slate-900">Latest Created Item</h2>
             <p className="mt-2 text-sm text-slate-700">
-              <span className="font-semibold">Code:</span> {latestItem.code}
+              <span className="font-semibold">Code:</span> {createdItem.code}
             </p>
             <p className="text-sm text-slate-700">
-              <span className="font-semibold">Name:</span> {latestItem.name}
+              <span className="font-semibold">Name:</span> {createdItem.name}
             </p>
           </div>
 
-          <CodePreview code={latestItem.code} />
-
-          <div className="rounded-xl border bg-white p-4 shadow-sm">
-            <h3 className="text-base font-semibold text-slate-900">Persisted Items</h3>
-            <ul className="mt-3 space-y-2 text-sm text-slate-700">
-              {createdItems.map((item) => (
-                <li key={item.code} className="rounded-md bg-slate-50 px-3 py-2">
-                  <span className="font-semibold">{item.name}</span>
-                  <span className="ml-2 font-mono text-xs text-slate-500">{item.code}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+          <CodePreview code={createdItem.code} />
         </section>
       ) : null}
-
-      <ScannerPage />
     </div>
   );
 }
