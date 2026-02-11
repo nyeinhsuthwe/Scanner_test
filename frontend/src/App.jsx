@@ -1,5 +1,7 @@
 import { NavLink, Route, Routes } from 'react-router-dom';
 import AdminPage from './pages/AdminPage';
+import CodeListPage from './pages/CodeListPage';
+import ScannerPage from './pages/ScannerPage';
 import DetailPage from './pages/DetailPage';
 
 const navClass = ({ isActive }) =>
@@ -11,9 +13,15 @@ function App() {
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="border-b bg-white">
-        <nav className="mx-auto flex max-w-5xl gap-2 p-4">
+        <nav className="mx-auto flex max-w-5xl flex-wrap gap-2 p-4">
           <NavLink to="/" className={navClass} end>
-            Scanner & Code Generator
+            Admin Create
+          </NavLink>
+          <NavLink to="/codes" className={navClass}>
+            Code List
+          </NavLink>
+          <NavLink to="/scan" className={navClass}>
+            Scanner
           </NavLink>
         </nav>
       </header>
@@ -21,7 +29,8 @@ function App() {
       <main className="mx-auto max-w-5xl p-4 md:p-8">
         <Routes>
           <Route path="/" element={<AdminPage />} />
-          <Route path="/scan" element={<AdminPage />} />
+          <Route path="/codes" element={<CodeListPage />} />
+          <Route path="/scan" element={<ScannerPage />} />
           <Route path="/items/:code" element={<DetailPage />} />
         </Routes>
       </main>

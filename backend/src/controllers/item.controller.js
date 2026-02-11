@@ -29,6 +29,15 @@ export const createItem = async (req, res, next) => {
   }
 };
 
+export const getItems = async (req, res, next) => {
+  try {
+    const items = await Item.find().sort({ createdAt: -1 }).lean();
+    return res.json(items);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getItemByCode = async (req, res, next) => {
   try {
     const { code } = req.params;
